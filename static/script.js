@@ -291,54 +291,67 @@ document.addEventListener('DOMContentLoaded', () => {
         const sourceElement = isCameraMode ? videoFeed : imagePreview;
         if (!sourceElement || (isCameraMode && videoFeed.readyState < 2)) return null;
 
-        const sourceRect = sourceElement.getBoundingClientRect();
-        const wrapperRect = previewWrapper.getBoundingClientRect();
-
         const sourceWidth = isCameraMode ? videoFeed.videoWidth : imagePreview.naturalWidth;
         const sourceHeight = isCameraMode ? videoFeed.videoHeight : imagePreview.naturalHeight;
 
-        const scaleX = sourceWidth / sourceRect.width;
-        const scaleY = sourceHeight / sourceRect.height;
+        // Step 1: Create canvas with rotated source (matching CSS preview)
+        const rotCanvas = document.createElement('canvas');
+        const rotCtx = rotCanvas.getContext('2d');
+
+        if (rotation % 360 !== 0) {
+            const rad = rotation * Math.PI / 180;
+            const sin = Math.abs(Math.sin(rad));
+            const cos = Math.abs(Math.cos(rad));
+
+            rotCanvas.width = sourceWidth * cos + sourceHeight * sin;
+            rotCanvas.height = sourceWidth * sin + sourceHeight * cos;
+
+            rotCtx.save();
+            rotCtx.translate(rotCanvas.width / 2, rotCanvas.height / 2);
+            rotCtx.rotate(rad);
+            rotCtx.drawImage(sourceElement, -sourceWidth / 2, -sourceHeight / 2, sourceWidth, sourceHeight);
+            rotCtx.restore();
+        } else {
+            rotCanvas.width = sourceWidth;
+            rotCanvas.height = sourceHeight;
+            rotCtx.drawImage(sourceElement, 0, 0, sourceWidth, sourceHeight);
+        }
+
+        // Step 2: Calculate crop position on rotated canvas
+        const sourceRect = sourceElement.getBoundingClientRect();
+        const wrapperRect = previewWrapper.getBoundingClientRect();
+
+        const displayWidth = sourceRect.width;
+        const displayHeight = sourceRect.height;
+
+        const scaleX = rotCanvas.width / displayWidth;
+        const scaleY = rotCanvas.height / displayHeight;
 
         const cropX = (cropState.x - (sourceRect.left - wrapperRect.left)) * scaleX;
         const cropY = (cropState.y - (sourceRect.top - wrapperRect.top)) * scaleY;
         const cropW = cropState.width * scaleX;
         const cropH = cropState.height * scaleY;
 
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
+        // Step 3: Extract crop from rotated canvas
+        const finalCanvas = document.createElement('canvas');
+        const finalCtx = finalCanvas.getContext('2d');
 
         // Auto-rotate if crop is vertical
-        const shouldRotate = cropH > cropW;
-        const finalRotation = rotation + (shouldRotate ? 90 : 0);
-
-        if (finalRotation % 360 === 0) {
-            canvas.width = cropW;
-            canvas.height = cropH;
-            ctx.drawImage(sourceElement, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+        if (cropH > cropW) {
+            finalCanvas.width = cropH;
+            finalCanvas.height = cropW;
+            finalCtx.save();
+            finalCtx.translate(cropH / 2, cropW / 2);
+            finalCtx.rotate(90 * Math.PI / 180);
+            finalCtx.drawImage(rotCanvas, cropX, cropY, cropW, cropH, -cropW / 2, -cropH / 2, cropW, cropH);
+            finalCtx.restore();
         } else {
-            const rad = finalRotation * Math.PI / 180;
-            const sin = Math.abs(Math.sin(rad));
-            const cos = Math.abs(Math.cos(rad));
-
-            canvas.width = cropW * cos + cropH * sin;
-            canvas.height = cropW * sin + cropH * cos;
-
-            ctx.save();
-            ctx.translate(canvas.width / 2, canvas.height / 2);
-            ctx.rotate(rad);
-
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = cropW;
-            tempCanvas.height = cropH;
-            const tempCtx = tempCanvas.getContext('2d');
-            tempCtx.drawImage(sourceElement, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
-
-            ctx.drawImage(tempCanvas, -cropW / 2, -cropH / 2);
-            ctx.restore();
+            finalCanvas.width = cropW;
+            finalCanvas.height = cropH;
+            finalCtx.drawImage(rotCanvas, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
         }
 
-        return canvas.toDataURL('image/jpeg');
+        return finalCanvas.toDataURL('image/jpeg');
     }
 
     processBtn.addEventListener('click', () => {
@@ -381,8 +394,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.green) chartInstance.data.datasets[2].data = data.green;
         if (data.blue) chartInstance.data.datasets[3].data = data.blue;
 
-        if (chartInstance.data.datasets.length > 4) chartInstance.data.datasets.splice(4);
-        chartInstance.update();
+        // Don't remove peak dataset - it will be updated by detectPeaks if enabled
+        chartInstance.update('none'); // Use 'none' mode for no animation
     }
 
     calibrateBtn.addEventListener('click', () => {
@@ -436,19 +449,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
 
-                const peakDataset = {
-                    label: 'Global Peaks',
-                    data: peakPoints,
-                    type: 'scatter',
-                    backgroundColor: 'white',
-                    pointRadius: 8,
-                    pointHoverRadius: 10,
-                    order: 0
-                };
-
-                if (chartInstance.data.datasets.length > 4) chartInstance.data.datasets[4] = peakDataset;
-                else chartInstance.data.datasets.push(peakDataset);
-                chartInstance.update();
+                // Update or add peak dataset
+                if (chartInstance.data.datasets.length > 4) {
+                    // Update existing peak dataset data without recreating it
+                    chartInstance.data.datasets[4].data = peakPoints;
+                } else {
+                    // First time - add the dataset
+                    chartInstance.data.datasets.push({
+                        label: 'Global Peaks',
+                        data: peakPoints,
+                        type: 'scatter',
+                        backgroundColor: 'white',
+                        pointRadius: 8,
+                        pointHoverRadius: 10,
+                        order: 0
+                    });
+                }
+                // Don't call update() here - let updateChart handle it
             }
         } catch (err) {
             console.error(err);
