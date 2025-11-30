@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIY Spectrum Analyzer</title>
+    <link rel="stylesheet" href="static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>DIY Spectrum Analyzer</h1>
+            <p>Medical Physics - Group Task 02</p>
+        </header>
+
+        <main>
+            <!-- Left Panel -->
+            <div class="panel left-panel">
+                <div class="card">
+                    <h2>1. Capture & Crop</h2>
+                    <div class="controls">
+                        <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                        <button id="uploadBtn" class="btn primary">Upload Image</button>
+                        <button id="cameraBtn" class="btn secondary">Open Camera</button>
+                    </div>
+
+                    <div class="preview-wrapper" id="previewWrapper">
+                        <video id="videoFeed" autoplay playsinline style="display: none;"></video>
+                        <img id="imagePreview" style="display: none;">
+                        <div id="cropOverlay" class="crop-overlay">
+                            <div class="crop-box" id="cropBox">
+                                <div class="crop-handle nw"></div>
+                                <div class="crop-handle ne"></div>
+                                <div class="crop-handle sw"></div>
+                                <div class="crop-handle se"></div>
+                            </div>
+                        </div>
+                        <div id="placeholderText" class="placeholder-text">Load Image or Open Camera</div>
+                    </div>
+
+                    <div class="crop-controls">
+                        <div class="rotation-control">
+                            <label>Rotation:</label>
+                            <input type="range" id="rotationSlider" min="-180" max="180" value="0" step="1">
+                            <span id="rotationVal">0°</span>
+                        </div>
+                        <button id="resetCrop" class="btn small">Reset Crop</button>
+                    </div>
+
+                    <div class="live-controls">
+                        <button id="startLiveBtn" class="btn primary" disabled>Start Live Analysis</button>
+                        <button id="stopLiveBtn" class="btn secondary" style="display: none;">Stop Live</button>
+                    </div>
+
+                    <p class="hint">1. Adjust Crop & Rotation → 2. Start Live → 3. Calibrate</p>
+                    <button id="processBtn" class="btn action" disabled>Process Current View</button>
+                </div>
+            </div>
+
+            <!-- Right Panel -->
+            <div class="panel right-panel">
+                <div class="card">
+                    <h2>2. Analysis & Calibration</h2>
+                    <div class="chart-container">
+                        <canvas id="spectrumChart"></canvas>
+                    </div>
+
+                    <div class="calibration-section">
+                        <h3>Calibration</h3>
+                        <p class="hint">Calibrate by aligning known laser peak to its wavelength</p>
+                        <div class="calib-inputs">
+                            <div class="input-group">
+                                <label>Known Wavelength (nm)</label>
+                                <input type="number" id="calib_laser_nm" placeholder="e.g. 532" value="532">
+                            </div>
+                        </div>
+                        <button id="calibrateBtn" class="btn action">Calibrate with Laser Peak</button>
+                    </div>
+
+                    <div class="actions-section">
+                        <div class="toggle-group">
+                            <label>
+                                <input type="checkbox" id="autoPeaksToggle">
+                                <span>Auto-Detect Peaks</span>
+                            </label>
+                        </div>
+                        <button id="saveCsvBtn" class="btn outline">Save CSV</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="static/script.js"></script>
+</body>
+
+</html>
