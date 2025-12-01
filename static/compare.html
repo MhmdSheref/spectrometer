@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compare Spectrums - DIY Spectrum Analyzer</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>Compare Spectrums</h1>
+                <p>Medical Physics - Group Task 02</p>
+            </div>
+            <button class="btn primary" onclick="window.location.href='..'">Back to Analyzer</button>
+        </header>
+
+        <main>
+            <!-- Left Panel - File Uploads -->
+            <div class="panel left-panel">
+                <div class="card">
+                    <h2>Upload Spectrum Data</h2>
+
+                    <div class="upload-section">
+                        <h3>Spectrum 1</h3>
+                        <input type="file" id="csvInput1" accept=".csv" style="display: none;">
+                        <button id="uploadBtn1" class="btn primary">Upload CSV File 1</button>
+                        <p class="file-status" id="status1">No file selected</p>
+                    </div>
+
+                    <div class="upload-section">
+                        <h3>Spectrum 2</h3>
+                        <input type="file" id="csvInput2" accept=".csv" style="display: none;">
+                        <button id="uploadBtn2" class="btn primary">Upload CSV File 2</button>
+                        <p class="file-status" id="status2">No file selected</p>
+                    </div>
+
+                    <p class="hint">Upload two CSV files exported from the spectrum analyzer to compare their peaks and
+                        metrics.</p>
+
+                    <div class="metrics-section" id="metricsSection" style="display: none;">
+                        <h3>Peak Comparison Metrics</h3>
+                        <table class="metrics-table">
+                            <thead>
+                                <tr>
+                                    <th>Metric</th>
+                                    <th>Spectrum 1</th>
+                                    <th>Spectrum 2</th>
+                                    <th>Difference</th>
+                                </tr>
+                            </thead>
+                            <tbody id="metricsBody">
+                                <!-- Metrics will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Comparison Chart -->
+            <div class="panel right-panel">
+                <div class="card">
+                    <h2>Spectrum Comparison</h2>
+                    <div class="chart-container">
+                        <canvas id="comparisonChart"></canvas>
+                    </div>
+                    <p class="hint" id="chartHint">Upload both CSV files to see the comparison chart.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="compare.js"></script>
+</body>
+
+</html>

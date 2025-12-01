@@ -355,4 +355,70 @@ h3 {
     flex: 1;
     font-size: 0.9rem;
     color: var(--text-color);
+}  
+  
+/* Comparison Page Styles */
+.upload-section {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #2a2a2a;
+    border-radius: 4px;
+}
+
+.upload-section h3 {
+    margin-bottom: 0.8rem;
+    color: var(--accent-color);
+}
+
+.file-status {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.metrics-section {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.metrics-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.8rem;
+}
+
+.metrics-table th,
+.metrics-table td {
+    padding: 0.6rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.metrics-table th {
+    background: #2a2a2a;
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
+.metrics-table td {
+    color: var(--text-color);
+}
+
+.metrics-table tr:hover {
+    background: rgba(0, 188, 212, 0.05);
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header>div h1 {
+    margin: 0;
+}
+
+header>div p {
+    margin: 0;
 }
