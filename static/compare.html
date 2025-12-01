@@ -1,79 +1,138 @@
 <!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Compare Spectrums - DIY Spectrum Analyzer</title>
-    <link rel="stylesheet" href="style.css">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/style.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
+  </head>
 
-<body>
-    <div class="container">
-        <header>
-            <div>
-                <h1>Compare Spectrums</h1>
-                <p>Medical Physics - Group Task 02</p>
+  <body class="bg-dark text-light">
+    <nav
+      class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary mb-4"
+    >
+      <div class="container">
+        <a class="navbar-brand d-flex flex-column" href="#">
+          <span class="fw-bold text-info">Compare Spectrums</span>
+          <small class="text-muted fs-6">Medical Physics - Group Task 02</small>
+        </a>
+        <div class="ms-auto">
+          <button
+            class="btn btn-outline-secondary"
+            onclick="window.location.href='..'"
+          >
+            Back to Analyzer
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container pb-5">
+      <div class="row g-4">
+        <!-- Left Panel: Uploads -->
+        <div class="col-lg-4">
+          <div class="card bg-secondary-subtle border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-secondary">
+              <h5 class="card-title mb-0 text-info">Upload Data</h5>
             </div>
-            <button class="btn primary" onclick="window.location.href='..'">Back to Analyzer</button>
-        </header>
+            <div class="card-body">
+              <!-- Spectrum 1 -->
+              <div class="mb-4 p-3 bg-dark rounded border border-secondary">
+                <h6 class="text-light mb-3">Spectrum 1</h6>
+                <input
+                  type="file"
+                  id="csvInput1"
+                  accept=".csv"
+                  class="d-none"
+                />
+                <button id="uploadBtn1" class="btn btn-primary w-100 mb-2">
+                  Upload CSV 1
+                </button>
+                <small
+                  class="file-status d-block text-truncate text-muted"
+                  id="status1"
+                  >No file selected</small
+                >
+              </div>
 
-        <main>
-            <!-- Left Panel - File Uploads -->
-            <div class="panel left-panel">
-                <div class="card">
-                    <h2>Upload Spectrum Data</h2>
+              <!-- Spectrum 2 -->
+              <div class="mb-4 p-3 bg-dark rounded border border-secondary">
+                <h6 class="text-light mb-3">Spectrum 2</h6>
+                <input
+                  type="file"
+                  id="csvInput2"
+                  accept=".csv"
+                  class="d-none"
+                />
+                <button id="uploadBtn2" class="btn btn-primary w-100 mb-2">
+                  Upload CSV 2
+                </button>
+                <small
+                  class="file-status d-block text-truncate text-muted"
+                  id="status2"
+                  >No file selected</small
+                >
+              </div>
 
-                    <div class="upload-section">
-                        <h3>Spectrum 1</h3>
-                        <input type="file" id="csvInput1" accept=".csv" style="display: none;">
-                        <button id="uploadBtn1" class="btn primary">Upload CSV File 1</button>
-                        <p class="file-status" id="status1">No file selected</p>
-                    </div>
+              <div class="alert alert-dark border-secondary text-muted small">
+                <i class="bi bi-info-circle"></i> Upload two CSV files exported
+                from the spectrum analyzer to compare their peaks.
+              </div>
 
-                    <div class="upload-section">
-                        <h3>Spectrum 2</h3>
-                        <input type="file" id="csvInput2" accept=".csv" style="display: none;">
-                        <button id="uploadBtn2" class="btn primary">Upload CSV File 2</button>
-                        <p class="file-status" id="status2">No file selected</p>
-                    </div>
-
-                    <p class="hint">Upload two CSV files exported from the spectrum analyzer to compare their peaks and
-                        metrics.</p>
-
-                    <div class="metrics-section" id="metricsSection" style="display: none;">
-                        <h3>Peak Comparison Metrics</h3>
-                        <table class="metrics-table">
-                            <thead>
-                                <tr>
-                                    <th>Metric</th>
-                                    <th>Spectrum 1</th>
-                                    <th>Spectrum 2</th>
-                                    <th>Difference</th>
-                                </tr>
-                            </thead>
-                            <tbody id="metricsBody">
-                                <!-- Metrics will be populated by JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
+              <div id="metricsSection" style="display: none">
+                <h6 class="border-bottom border-secondary pb-2 mb-3 text-light">
+                  Comparison Metrics
+                </h6>
+                <div class="table-responsive">
+                  <table
+                    class="table table-sm table-dark table-borderless small"
+                  >
+                    <thead>
+                      <tr class="text-info border-bottom border-secondary">
+                        <th>Metric</th>
+                        <th>Spec 1</th>
+                        <th>Spec 2</th>
+                        <th>Diff</th>
+                      </tr>
+                    </thead>
+                    <tbody id="metricsBody">
+                      <!-- JS Populated -->
+                    </tbody>
+                  </table>
                 </div>
+              </div>
             </div>
+          </div>
+        </div>
 
-            <!-- Right Panel - Comparison Chart -->
-            <div class="panel right-panel">
-                <div class="card">
-                    <h2>Spectrum Comparison</h2>
-                    <div class="chart-container">
-                        <canvas id="comparisonChart"></canvas>
-                    </div>
-                    <p class="hint" id="chartHint">Upload both CSV files to see the comparison chart.</p>
-                </div>
+        <!-- Right Panel: Chart -->
+        <div class="col-lg-8">
+          <div class="card bg-secondary-subtle border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-secondary">
+              <h5 class="card-title mb-0 text-info">Comparison Chart</h5>
             </div>
-        </main>
+            <div class="card-body d-flex flex-column">
+              <div
+                class="chart-container flex-grow-1 position-relative"
+                style="min-height: 400px"
+              >
+                <canvas id="comparisonChart"></canvas>
+              </div>
+              <p class="text-center text-muted mt-3 mb-0 small" id="chartHint">
+                Upload both CSV files to see the comparison chart.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    <script src="compare.js"></script>
-</body>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="compare.js"></script>
+  </body>
 </html>
