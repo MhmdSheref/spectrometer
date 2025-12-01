@@ -43,20 +43,21 @@ def extract_intensity_from_crop(img, crop_rect):
     g_curve = np.sum(roi[:, :, 1], axis=0)
     r_curve = np.sum(roi[:, :, 2], axis=0)
     
-    # Intensity (Grayscale)
-    gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
-    intensity_curve = np.sum(gray, axis=0)
+    # Total Intensity as average of all three channels (more accurate for spectroscopy)
+    intensity_curve = (r_curve + g_curve + b_curve) / 3.0
     
-    # Normalize
-    def normalize(arr):
-        m = np.max(arr)
-        return (arr / m).tolist() if m > 0 else arr.tolist()
+    # Normalize all channels together using global maximum
+    # This ensures all four curves (R, G, B, and Total) share the same 0-1 scale
+    global_max = max(np.max(r_curve), np.max(g_curve), np.max(b_curve))
+    
+    def normalize_with_global_max(arr, global_max):
+        return (arr / global_max).tolist() if global_max > 0 else arr.tolist()
 
     return {
-        "blue": normalize(b_curve),
-        "green": normalize(g_curve),
-        "red": normalize(r_curve),
-        "intensity": normalize(intensity_curve),
+        "blue": normalize_with_global_max(b_curve, global_max),
+        "green": normalize_with_global_max(g_curve, global_max),
+        "red": normalize_with_global_max(r_curve, global_max),
+        "intensity": normalize_with_global_max(intensity_curve, global_max),
         "flipped": is_flipped,
         "width": roi.shape[1]
     }
