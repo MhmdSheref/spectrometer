@@ -22,12 +22,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const spectrumChartCtx = document.getElementById('spectrumChart').getContext('2d');
     const calibLaserNmInput = document.getElementById('calib_laser_nm');
     const calibrateBtn = document.getElementById('calibrateBtn');
+    const autoCalibrateBtn = document.getElementById('autoCalibrateBtn');
+    const calibConfidence = document.getElementById('calibConfidence');
+    const confidenceValue = document.getElementById('confidenceValue');
+    const confidenceMsg = document.getElementById('confidenceMsg');
     const autoPeaksToggle = document.getElementById('autoPeaksToggle');
     const saveCsvBtn = document.getElementById('saveCsvBtn');
 
     // State
     let chartInstance = null;
     let currentData = null;
+    let detectedPeaks = null;  // Store detected peaks for CSV export
     let nmPerPixel = (750 - 380) / 1000;
     let wavelengthOffset = 0;
     let liveInterval = null;
@@ -111,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 interaction: { mode: 'index', intersect: false },
                 scales: {
                     x: { title: { display: true, text: 'Wavelength (nm)', color: '#888' }, grid: { color: '#333' }, ticks: { color: '#888' } },
-                    y: { title: { display: true, text: 'Normalized Intensity', color: '#888' }, grid: { color: '#333' }, ticks: { color: '#888' } }
+                    y: { title: { display: true, text: 'Intensity (0-255)', color: '#888' }, grid: { color: '#333' }, ticks: { color: '#888' } }
                 },
                 plugins: { legend: { labels: { color: '#e0e0e0' } } }
             }
@@ -394,6 +399,21 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.green) chartInstance.data.datasets[2].data = data.green;
         if (data.blue) chartInstance.data.datasets[3].data = data.blue;
 
+        // Update gradient visibility based on RGB channel visibility
+        const rgbHidden = chartInstance.data.datasets[1].hidden &&
+            chartInstance.data.datasets[2].hidden &&
+            chartInstance.data.datasets[3].hidden;
+
+        if (rgbHidden) {
+            // Show gradient when all RGB channels are hidden
+            chartInstance.data.datasets[0].borderColor = function (context) {
+                return updateChartGradient(context.chart);
+            };
+        } else {
+            // Show white/gray when RGB channels are visible
+            chartInstance.data.datasets[0].borderColor = 'rgba(200, 200, 200, 0.8)';
+        }
+
         // Don't remove peak dataset - it will be updated by detectPeaks if enabled
         chartInstance.update('none'); // Use 'none' mode for no animation
     }
@@ -425,6 +445,99 @@ document.addEventListener('DOMContentLoaded', () => {
         alert(`Calibrated! Peak at pixel ${maxIdx} set to ${laserNm}nm.`);
     });
 
+    // Auto-Calibrate Button
+    autoCalibrateBtn.addEventListener('click', async () => {
+        if (!currentData) {
+            alert("Please process a spectrum first (or start Live Mode).");
+            return;
+        }
+
+        try {
+            autoCalibrateBtn.disabled = true;
+            autoCalibrateBtn.textContent = '🔄 Calibrating...';
+
+            const res = await fetch('/auto_calibrate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    red: currentData.red,
+                    green: currentData.green,
+                    blue: currentData.blue
+                })
+            });
+
+            const result = await res.json();
+
+            if (!result.success) {
+                alert("Auto-calibration failed:\n\n" + result.error + "\n\nTry using a better white light source or use manual calibration.");
+                calibConfidence.style.display = 'none';
+                return;
+            }
+
+            // Apply calibration parameters
+            nmPerPixel = result.nmPerPixel;
+            wavelengthOffset = result.wavelengthOffset;
+            applyCalibration();
+
+            // Display peaks on chart
+            const peaks = result.peaks;
+            if (peaks) {
+                const peakPoints = currentData.intensity.map(() => null);
+                ['red', 'green', 'blue'].forEach(channel => {
+                    if (peaks[channel]) {
+                        const idx = Math.round(peaks[channel].pixel);
+                        peakPoints[idx] = currentData.intensity[idx];
+                    }
+                });
+
+                // Update or add peak dataset
+                if (chartInstance.data.datasets.length > 4) {
+                    chartInstance.data.datasets[4].data = peakPoints;
+                } else {
+                    chartInstance.data.datasets.push({
+                        label: 'Calibration Peaks',
+                        data: peakPoints,
+                        type: 'scatter',
+                        backgroundColor: 'orange',
+                        pointRadius: 8,
+                        pointHoverRadius: 10,
+                        order: 0
+                    });
+                }
+                chartInstance.update('none');
+            }
+
+            // Show confidence
+            const confidencePercent = Math.round(result.confidence * 100);
+            confidenceValue.textContent = confidencePercent;
+
+            if (confidencePercent >= 70) {
+                confidenceMsg.textContent = ' - Excellent!';
+                calibConfidence.className = 'alert alert-success py-2 px-3 mb-3';
+            } else if (confidencePercent >= 50) {
+                confidenceMsg.textContent = ' - Good';
+                calibConfidence.className = 'alert alert-info py-2 px-3 mb-3';
+            } else {
+                confidenceMsg.textContent = ' - Low (consider recalibrating)';
+                calibConfidence.className = 'alert alert-warning py-2 px-3 mb-3';
+            }
+            calibConfidence.style.display = 'block';
+
+            alert(`Auto-calibrated successfully!\n\nPeaks detected:\n` +
+                `  Blue: ${peaks.blue.wavelength}nm @ pixel ${Math.round(peaks.blue.pixel)}\n` +
+                `  Green: ${peaks.green.wavelength}nm @ pixel ${Math.round(peaks.green.pixel)}\n` +
+                `  Red: ${peaks.red.wavelength}nm @ pixel ${Math.round(peaks.red.pixel)}\n\n` +
+                `Confidence: ${confidencePercent}%`);
+
+        } catch (err) {
+            console.error(err);
+            alert("Error during auto-calibration: " + err.message);
+        } finally {
+            autoCalibrateBtn.disabled = false;
+            autoCalibrateBtn.textContent = '🌈 Auto Calibrate (White Light)';
+        }
+    });
+
     // Peak Detection Function
     async function detectPeaks() {
         if (!currentData) return;
@@ -436,13 +549,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     wavelengths: currentData.wavelengths,
                     red: currentData.red,
                     green: currentData.green,
-                    blue: currentData.blue
+                    blue: currentData.blue,
+                    intensity: currentData.intensity  // Include total intensity
                 })
             });
             const data = await res.json();
             if (data.peaks) {
+                detectedPeaks = data.peaks;  // Store for CSV export
+
                 const peakPoints = currentData.intensity.map(() => null);
-                ['red', 'green', 'blue'].forEach(channel => {
+                ['red', 'green', 'blue', 'intensity'].forEach(channel => {
                     if (data.peaks[channel]) {
                         const p = data.peaks[channel];
                         peakPoints[p.index] = p.intensity;
@@ -474,10 +590,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     saveCsvBtn.addEventListener('click', () => {
         if (!currentData) return;
+
+        // Build CSV header
         let csvContent = "data:text/csv;charset=utf-8,Wavelength (nm),Intensity,Red,Green,Blue\n";
+
+        // Add spectrum data
         currentData.wavelengths.forEach((wl, i) => {
             csvContent += `${wl},${currentData.intensity[i]},${currentData.red[i]},${currentData.green[i]},${currentData.blue[i]}\n`;
         });
+
+        // Add detected peaks information if available
+        if (detectedPeaks) {
+            csvContent += "\n\nDetected Peaks\n";
+            csvContent += "Channel,Wavelength (nm),Intensity,Pixel Index\n";
+            ['red', 'green', 'blue', 'intensity'].forEach(channel => {
+                if (detectedPeaks[channel]) {
+                    const p = detectedPeaks[channel];
+                    csvContent += `${channel},${p.wavelength},${p.intensity},${p.index}\n`;
+                }
+            });
+        }
+
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);

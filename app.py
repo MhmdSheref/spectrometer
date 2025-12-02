@@ -84,18 +84,73 @@ def calibrate():
     new_wavelengths = calibrate_pixel_to_wavelength(pixel_indices, known_wavelengths, total_pixels)
     return jsonify({'wavelengths': new_wavelengths})
 
+
+@app.route('/auto_calibrate', methods=['POST'])
+def auto_calibrate():
+    """
+    Automatically calibrates wavelength using white light spectrum and RGB peaks.
+    
+    Input: {red: [...], green: [...], blue: [...]}
+    Output: {
+        success: bool,
+        nmPerPixel: float,
+        wavelengthOffset: float,
+        confidence: float,
+        peaks: {red: {...}, green: {...}, blue: {...}},
+        error: str (if failed)
+    }
+    """
+    data = request.json
+    red = data.get('red')
+    green = data.get('green')
+    blue = data.get('blue')
+    
+    if not red or not green or not blue:
+        return jsonify({'success': False, 'error': 'Missing RGB channel data'}), 400
+    
+    from main import auto_calibrate_from_white_light
+    
+    # Call auto-calibration function
+    result = auto_calibrate_from_white_light(red, green, blue)
+    
+    if not result['success']:
+        return jsonify(result), 200
+    
+    # Calculate nmPerPixel and wavelengthOffset using linear fit
+    pixel_positions = result['pixel_positions']
+    reference_wavelengths = result['reference_wavelengths']
+    
+    # Linear least-squares fit: wavelength = m * pixel + c
+    # Using numpy polyfit (degree 1 = linear)
+    z = np.polyfit(pixel_positions, reference_wavelengths, 1)
+    slope = z[0]  # nm per pixel
+    intercept = z[1]  # wavelength at pixel 0
+    
+    # Calculate parameters in the format expected by frontend
+    # Frontend uses: wavelength = (pixel * nmPerPixel) + wavelengthOffset + 380
+    # We have: wavelength = slope * pixel + intercept
+    # So: nmPerPixel = slope, wavelengthOffset = intercept - 380
+    nmPerPixel = float(slope)
+    wavelengthOffset = float(intercept - 380)
+    
+    result['nmPerPixel'] = nmPerPixel
+    result['wavelengthOffset'] = wavelengthOffset
+    
+    return jsonify(result)
+
 @app.route('/peaks', methods=['POST'])
 def get_peaks():
     data = request.json
     wavelengths = data.get('wavelengths')
-    # We need the full data object (red, green, blue)
+    # We need the full data object (red, green, blue, intensity)
     # The frontend sends 'intensity' but we need more.
     # Let's expect the frontend to send the whole 'currentData' object or specific channels.
-    # For simplicity, let's accept 'red', 'green', 'blue' arrays.
+    # For simplicity, let's accept 'red', 'green', 'blue', 'intensity' arrays.
     
     red = data.get('red')
     green = data.get('green')
     blue = data.get('blue')
+    intensity = data.get('intensity')  # Add total intensity
     
     if not wavelengths:
         return jsonify({'error': 'Missing wavelength data'}), 400
@@ -104,11 +159,13 @@ def get_peaks():
     input_data = {
         'red': red,
         'green': green,
-        'blue': blue
+        'blue': blue,
+        'intensity': intensity  # Include total intensity for peak detection
     }
     
     peaks = detect_peaks_in_data(wavelengths, input_data)
     return jsonify({'peaks': peaks})
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5050)

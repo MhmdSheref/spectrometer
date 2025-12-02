@@ -1,205 +1,170 @@
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DIY Spectrum Analyzer</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="/static/style.css" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  </head>
 
-  <body class="bg-dark text-light">
-    <nav
-      class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary mb-4"
-    >
-      <div class="container">
-        <a class="navbar-brand d-flex flex-column" href="#">
-          <span class="fw-bold text-info">DIY Spectrum Analyzer</span>
-          <small class="text-muted fs-6">Medical Physics - Group Task 02</small>
-        </a>
-        <div class="ms-auto">
-          <button
-            class="btn btn-outline-info"
-            onclick="window.location.href='static/compare.html'"
-          >
-            Compare Spectrums
-          </button>
-        </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DIY Spectrum Analyzer</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="bg-dark text-light">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary mb-4">
+    <div class="container">
+      <a class="navbar-brand d-flex flex-column" href="#">
+        <span class="fw-bold text-info">DIY Spectrum Analyzer</span>
+        <small class="text-muted fs-6">Medical Physics - Group Task 02</small>
+      </a>
+      <div class="ms-auto">
+        <button class="btn btn-outline-info" onclick="window.location.href='static/compare.html'">
+          Compare Spectrums
+        </button>
       </div>
-    </nav>
+    </div>
+  </nav>
 
-    <div class="container pb-5">
-      <div class="row g-4">
-        <!-- Left Panel: Capture -->
-        <div class="col-lg-5">
-          <div class="card bg-secondary-subtle h-100 border-0 shadow-sm">
-            <div class="card-header bg-transparent border-secondary">
-              <h5 class="card-title mb-0">1. Capture & Crop</h5>
-            </div>
-            <div class="card-body">
-              <div class="d-flex gap-2 mb-3">
-                <input
-                  type="file"
-                  id="imageInput"
-                  accept="image/*"
-                  class="d-none"
-                />
-                <button id="uploadBtn" class="btn btn-primary flex-grow-1">
-                  Upload Image
-                </button>
-                <button id="cameraBtn" class="btn btn-success flex-grow-1">
-                  Open Camera
-                </button>
-              </div>
-
-              <div
-                class="preview-wrapper rounded border border-secondary mb-3"
-                id="previewWrapper"
-              >
-                <video
-                  id="videoFeed"
-                  autoplay
-                  playsinline
-                  style="display: none"
-                ></video>
-                <img id="imagePreview" style="display: none" />
-                <div id="cropOverlay" class="crop-overlay">
-                  <div class="crop-box" id="cropBox">
-                    <div class="crop-handle nw"></div>
-                    <div class="crop-handle ne"></div>
-                    <div class="crop-handle sw"></div>
-                    <div class="crop-handle se"></div>
-                  </div>
-                </div>
-                <div id="placeholderText" class="placeholder-text text-muted">
-                  Load Image or Open Camera
-                </div>
-              </div>
-
-              <div class="crop-controls mb-3">
-                <label class="form-label d-flex justify-content-between">
-                  <span>Rotation</span>
-                  <span id="rotationVal" class="badge bg-dark">0°</span>
-                </label>
-                <input
-                  type="range"
-                  id="rotationSlider"
-                  class="form-range"
-                  min="-180"
-                  max="180"
-                  value="0"
-                  step="1"
-                />
-                <button
-                  id="resetCrop"
-                  class="btn btn-sm btn-outline-secondary w-100 mt-2"
-                >
-                  Reset Crop
-                </button>
-              </div>
-
-              <div class="d-grid gap-2 mb-2">
-                <button
-                  id="startLiveBtn"
-                  class="btn btn-info text-white"
-                  disabled
-                >
-                  Start Live Analysis
-                </button>
-                <button
-                  id="stopLiveBtn"
-                  class="btn btn-danger"
-                  style="display: none"
-                >
-                  Stop Live
-                </button>
-              </div>
-
-              <div class="text-center text-muted small mb-2">
-                1. Adjust Crop & Rotation → 2. Start Live → 3. Calibrate
-              </div>
-              <button
-                id="processBtn"
-                class="btn btn-light w-100 fw-bold"
-                disabled
-              >
-                Process Current View
+  <div class="container pb-5">
+    <div class="row g-4">
+      <!-- Left Panel: Capture -->
+      <div class="col-lg-5">
+        <div class="card bg-secondary-subtle h-100 border-0 shadow-sm">
+          <div class="card-header bg-transparent border-secondary">
+            <h5 class="card-title mb-0">1. Capture & Crop</h5>
+          </div>
+          <div class="card-body">
+            <div class="d-flex gap-2 mb-3">
+              <input type="file" id="imageInput" accept="image/*" class="d-none" />
+              <button id="uploadBtn" class="btn btn-primary flex-grow-1">
+                Upload Image
+              </button>
+              <button id="cameraBtn" class="btn btn-success flex-grow-1">
+                Open Camera
               </button>
             </div>
+
+            <div class="preview-wrapper rounded border border-secondary mb-3" id="previewWrapper">
+              <video id="videoFeed" autoplay playsinline style="display: none"></video>
+              <img id="imagePreview" style="display: none" />
+              <div id="cropOverlay" class="crop-overlay">
+                <div class="crop-box" id="cropBox">
+                  <div class="crop-handle nw"></div>
+                  <div class="crop-handle ne"></div>
+                  <div class="crop-handle sw"></div>
+                  <div class="crop-handle se"></div>
+                </div>
+              </div>
+              <div id="placeholderText" class="placeholder-text text-muted">
+                Load Image or Open Camera
+              </div>
+            </div>
+
+            <div class="crop-controls mb-3">
+              <label class="form-label d-flex justify-content-between">
+                <span>Rotation</span>
+                <span id="rotationVal" class="badge bg-dark">0°</span>
+              </label>
+              <input type="range" id="rotationSlider" class="form-range" min="-180" max="180" value="0" step="1" />
+              <button id="resetCrop" class="btn btn-sm btn-outline-secondary w-100 mt-2">
+                Reset Crop
+              </button>
+            </div>
+
+            <div class="d-grid gap-2 mb-2">
+              <button id="startLiveBtn" class="btn btn-info text-white" disabled>
+                Start Live Analysis
+              </button>
+              <button id="stopLiveBtn" class="btn btn-danger" style="display: none">
+                Stop Live
+              </button>
+            </div>
+
+            <div class="text-center text-muted small mb-2">
+              1. Adjust Crop & Rotation → 2. Start Live → 3. Calibrate
+            </div>
+            <button id="processBtn" class="btn btn-light w-100 fw-bold" disabled>
+              Process Current View
+            </button>
           </div>
         </div>
+      </div>
 
-        <!-- Right Panel: Analysis -->
-        <div class="col-lg-7">
-          <div class="card bg-secondary-subtle h-100 border-0 shadow-sm">
-            <div class="card-header bg-transparent border-secondary">
-              <h5 class="card-title mb-0">2. Analysis & Calibration</h5>
+      <!-- Right Panel: Analysis -->
+      <div class="col-lg-7">
+        <div class="card bg-secondary-subtle h-100 border-0 shadow-sm">
+          <div class="card-header bg-transparent border-secondary">
+            <h5 class="card-title mb-0">2. Analysis & Calibration</h5>
+          </div>
+          <div class="card-body d-flex flex-column">
+            <div class="chart-container flex-grow-1 mb-4" style="min-height: 300px">
+              <canvas id="spectrumChart"></canvas>
             </div>
-            <div class="card-body d-flex flex-column">
-              <div
-                class="chart-container flex-grow-1 mb-4"
-                style="min-height: 300px"
-              >
-                <canvas id="spectrumChart"></canvas>
-              </div>
 
-              <div class="border-top border-secondary pt-3">
-                <h6 class="text-muted mb-3">Calibration</h6>
-                <div class="row g-2 align-items-end mb-3">
-                  <div class="col-md-8">
-                    <label class="form-label text-muted small"
-                      >Known Wavelength (nm)</label
-                    >
-                    <div class="input-group">
-                      <input
-                        type="number"
-                        id="calib_laser_nm"
-                        class="form-control bg-dark text-light border-secondary"
-                        placeholder="e.g. 532"
-                        value="532"
-                      />
-                      <span
-                        class="input-group-text bg-secondary border-secondary text-light"
-                        >nm</span
-                      >
-                    </div>
-                  </div>
-                  <div class="col-md-4">
-                    <button id="calibrateBtn" class="btn btn-warning w-100">
-                      Calibrate Peak
-                    </button>
+            <div class="border-top border-secondary pt-3">
+              <h6 class="text-muted mb-3">Calibration</h6>
+
+              <!-- Manual Calibration with Known Wavelength -->
+              <div class="row g-2 align-items-end mb-3">
+                <div class="col-md-8">
+                  <label class="form-label text-muted small">Known Wavelength (nm)</label>
+                  <div class="input-group">
+                    <input type="number" id="calib_laser_nm" class="form-control bg-dark text-light border-secondary"
+                      placeholder="e.g. 532" value="532" />
+                    <span class="input-group-text bg-secondary border-secondary text-light">nm</span>
                   </div>
                 </div>
-
-                <div
-                  class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top border-secondary"
-                >
-                  <div class="form-check form-switch">
-                    <input
-                      class="form-check-input"
-                      type="checkbox"
-                      id="autoPeaksToggle"
-                    />
-                    <label class="form-check-label" for="autoPeaksToggle"
-                      >Auto-Detect Peaks</label
-                    >
-                  </div>
-                  <button id="saveCsvBtn" class="btn btn-outline-light">
-                    Save CSV
+                <div class="col-md-4">
+                  <button id="calibrateBtn" class="btn btn-warning w-100">
+                    Calibrate Peak
                   </button>
                 </div>
+              </div>
+
+              <!-- Auto-Calibration with White Light -->
+              <div class="row g-2 align-items-center mb-2">
+                <div class="col">
+                  <button id="autoCalibrateBtn" class="btn btn-info w-100">
+                    🌈 Auto Calibrate (White Light)
+                  </button>
+                </div>
+                <div class="col-auto">
+                  <span class="badge bg-secondary" data-bs-toggle="tooltip" data-bs-placement="top"
+                    title="Point at white light (sunlight or incandescent bulb). Avoid LEDs and fluorescent lights for best results."
+                    style="cursor: help;">
+                    ℹ️
+                  </span>
+                </div>
+              </div>
+
+              <!-- Confidence Indicator -->
+              <div id="calibConfidence" class="alert alert-info py-2 px-3 mb-3" style="display: none;">
+                <small>
+                  <strong>Calibration confidence:</strong>
+                  <span id="confidenceValue">--</span>%
+                  <span id="confidenceMsg"></span>
+                </small>
+              </div>
+
+
+              <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top border-secondary">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="autoPeaksToggle" />
+                  <label class="form-check-label" for="autoPeaksToggle">Auto-Detect Peaks</label>
+                </div>
+                <button id="saveCsvBtn" class="btn btn-outline-light">
+                  Save CSV
+                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="static/script.js"></script>
-  </body>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="static/script.js"></script>
+</body>
+
 </html>
