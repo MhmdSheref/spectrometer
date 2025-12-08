@@ -76,3 +76,62 @@ Ensure you have the following installed:
 | `/auto_calibrate` | POST | Accepts RGB channel data, returns calibration parameters based on white light peaks. |
 | `/peaks` | POST | Accepts spectral data, returns detected peak locations. |
 | `/calibrate` | POST | (Legacy) Manual calibration endpoint. |
+
+
+##  Contributors
+
+<div align="center">
+
+###  Team Members
+
+<table>
+<tr>
+<td align="center">
+<a href="https://github.com/MhmdSheref">
+<img src="https://github.com/MhmdSheref.png" width="100px;" alt="MhmdSheref"/><br />
+<sub><b>MhmdSheref</b></sub></a>
+
+</td>
+
+<td align="center">
+<a href="https://github.com/BasselM0stafa">
+<img src="https://github.com/BasselM0stafa.png" width="100px;" alt="BasselM0stafa"/><br />
+<sub><b>Bassel Mostafa</b></sub></a>
+</td>
+
+<td align="center">
+<a href="https://github.com/MahmoudZah">
+<img src="https://github.com/MahmoudZah.png" width="100px;" alt="MahmoudZah"/><br />
+<sub><b>Mahmoud Zahran</b></sub></a>
+
+</td>
+
+</tr>
+<tr>
+
+<td align="center">
+<a href="https://github.com/RwanOtb">
+<img src="https://github.com/RwanOtb.png" width="100px;" alt="RwanOtb"/><br />
+<sub><b>RwanOtb</b></sub></a>
+</td>
+
+<td align="center">
+<a href="https://github.com/rahmashraf">
+<img src="https://github.com/rahmashraf.png" width="100px;" alt="rahmashraf"/><br />
+<sub><b>rahmashraf</b></sub></a>
+</td>
+
+<td align="center">
+<br /><br /><br /><br /><br />
+<sub><b>Mahmoud Mazen</b></sub>
+</td>
+
+</tr>
+</table>
+
+                                        
+</div>   
+
+# Supervised By
+
+* **Eng. Amira Omar**   
