@@ -14,6 +14,20 @@ A web-based optical spectrometer interface that transforms your camera or upload
 -   **Peak Detection**: Automatically identify and highlight spectral peaks.
 -   **Data Export**: Download your spectral data and detected peaks as a CSV file.
 
+## Hardware Setup: DIY Pringles Can Spectrometer
+
+You can build a fully functional spectrometer using household items!
+
+1.  **The Body**: Take a standard **Pringles can** (or any long tube).
+2.  **Light Slit**: Cut a very thin slit at the bottom metal end of the can. This allows a narrow beam of light to enter.
+3.  **Viewing Port**: Cut a small viewing hole on the side of the can, near the top (plastic lid end).
+4.  **Diffraction Grating**:
+    -   Take an old **CD** or DVD.
+    -   Cut a piece of the CD.
+    -   Insert it into the can through the viewing hole (or a separate slot) and secure it at a **45-degree angle**.
+5.  **Alignment**: Ensure that light entering the slit hits the CD and reflects/diffracts towards the viewing hole.
+6.  **Connect**: Place your phone camera or webcam against the viewing hole to capture the spectrum.
+
 ## Prerequisites
 
 Ensure you have the following installed:
